@@ -8,11 +8,11 @@ import os
 
 
 N_total = 500			#total number of persons
-N_sick = 2 				#initial number of infected
-infect_radius = 0.0001	#maximum distance at which virus is transmitted
-m = 0.01 				#distance moved during iteration 
+N_sick = 2 			#initial number of infected
+infect_radius = 0.0001		#maximum distance at which virus is transmitted
+m = 0.01 			#distance moved during iteration 
 soc_dist = 0.5 			#ratio of people obeying social distancing, 0 = none and at 1 all are static
-virus_deathrate = 0.1	#probability of death once infected
+virus_deathrate = 0.1		#probability of death once infected
 iterations = 500		#simulation iterations
 movement_fact = 9		#iterations in a day
 frame_dur = 0.05		#duration of one frame of the final .gif
