@@ -1,21 +1,21 @@
 import numpy as np
-from pylab import *
 import copy as cp
 import random
 import math
 from PIL import Image, ImageDraw
 import os
+import matplotlib.pyplot as plt
 
 
 N_total = 500			#total number of persons
-N_sick = 2 			#initial number of infected
-infect_radius = 0.0001		#maximum distance at which virus is transmitted
-m = 0.01 			#distance moved during iteration 
-soc_dist = 0.5 			#ratio of people obeying social distancing, 0 = none and at 1 all are static
-virus_deathrate = 0.1		#probability of death once infected
-iterations = 500		#simulation iterations
-movement_fact = 9		#iterations in a day
-frame_dur = 0.05		#duration of one frame of the final .gif
+N_sick = 2 				#initial number of infected
+infect_radius = 0.0001	#maximum distance at which virus is transmitted
+m = 0.005 				#distance step during iteration 
+soc_dist = 0 			#ratio of people obeying social distancing, 0 = none and at 1 all are static
+virus_deathrate = 0.1	#probability of death once infected
+iterations = 1000		#simulation iterations
+movement_fact = 18		#iterations in a day
+frame_dur = 0.01		#duration of one frame in the final .gif
 
 class person:
 	pass
@@ -52,9 +52,13 @@ def initialize():
 		per.y = random.random()	#random seed for agent on y space
 		population.append(per)  #creating the agent space
 
+healthy = []
+infected = []
+dead = []
+recovered = []
+
 def observe():
-	#subplot(1, 2, 1)
-	cla()
+	global healthy, infected, dead, recovered
 	for per in population:
 		if per.stat == 'sick':
 			if (per.day_x > 0) and (per.timer == per.day_x): #if person sick and will die, this keeps track of the day of death
@@ -67,7 +71,7 @@ def observe():
 		if per.update != '': #checks if person was infected in last step
 			per.stat = per.update
 			per.update = ''
-			
+
 	x_healthy = [per.x for per in population if per.stat == 'healthy']
 	y_healthy = [per.y for per in population if per.stat == 'healthy']
 
@@ -80,19 +84,28 @@ def observe():
 	x_recovered = [per.x for per in population if per.stat == 'recovered']
 	y_recovered = [per.y for per in population if per.stat == 'recovered']
 
-	plot(x_healthy, y_healthy, 'go')
-	plot(x_dead, y_dead, 'kx')
-	plot(x_sick, y_sick, 'ro')
-	plot(x_recovered, y_recovered, 'bo')
+	plt.cla()
+	plt.scatter(x_healthy, y_healthy, s=3, c='g', marker="o")
+	plt.scatter(x_dead, y_dead, s=3, c='k', marker="o")
+	plt.scatter(x_sick, y_sick, s=3, c='r', marker="o")
+	plt.scatter(x_recovered, y_recovered, s=3, c='b', marker="o")
 	print(len(x_healthy), len(x_sick), len(x_recovered), len(x_dead))
 
-	axis('image')
-	axis([0, 1, 0, 1])
-	#subplot(1, 2, 2)
-	#cla()
-	#plot(len(population), label='population')
-	title('interval ' + str(t))
-	savefig('interval ' + str(t) + '.png')
+	plt.axis([0, 1, 0, 1])
+	plt.title('iteration #' + str(t))
+	plt.savefig('iteration' + str(t) + '.png')
+
+	healthy.append(len(x_healthy))
+	infected.append(len(x_sick))
+	dead.append(len(x_dead))
+	recovered.append(len(x_recovered))
+	plt.cla()
+	plt.stackplot(range(len(dead)), [dead, infected, recovered, healthy], labels=['dead','infected','recovered', 'healthy'], colors= ["k", "r", "b", "g"])
+	plt.title('stackplot')
+	plt.legend(loc='upper left')
+	plt.margins(0,0)
+	plt.savefig('stackplot'+str(t)+'.png')
+
 
 def update():
 	for per in population:
@@ -119,9 +132,14 @@ for t in range(1, iterations):
     observe()
 
 frames = []
+frames2 = []
 for i in range(iterations):
-	img = Image.open('interval '+str(i)+'.png')
+	img = Image.open('iteration'+str(i)+'.png')
 	frames.append(img)
+	img2 = Image.open('stackplot'+str(i)+'.png')
+	frames2.append(img2)
 frames[0].save('simulation.gif', format='GIF', append_images=frames[1:], save_all=True, duration=frame_dur, loop=0)
+frames2[0].save('stack.gif', format='GIF', append_images=frames2[1:], save_all=True, duration=frame_dur, loop=0)
 for i in range(iterations):
-	os.remove('interval '+str(i)+'.png') 
+	os.remove('iteration'+str(i)+'.png')
+	os.remove('stackplot'+str(i)+'.png')
